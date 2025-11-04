@@ -1,10 +1,10 @@
 package main
 
 import (
+	"github.com/JackalLabs/jindexer/database"
+	"github.com/JackalLabs/jindexer/indexer"
+	"github.com/JackalLabs/jindexer/utils"
 	canine "github.com/jackalLabs/canine-chain/v5/app"
-	"jindexer/database"
-	"jindexer/indexer"
-	"jindexer/utils"
 )
 
 func main() {

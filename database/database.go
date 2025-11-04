@@ -1,9 +1,9 @@
 package database
 
 import (
+	"github.com/JackalLabs/jindexer/types"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	"jindexer/types"
 )
 
 func initDatabase() (*gorm.DB, error) {

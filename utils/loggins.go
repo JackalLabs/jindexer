@@ -1,11 +1,12 @@
 package utils
 
 import (
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
 func InitLogger(message string) {

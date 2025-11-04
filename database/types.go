@@ -3,7 +3,7 @@ package database
 import (
 	"time"
 
-	"jindexer/types"
+	"github.com/JackalLabs/jindexer/types"
 
 	"gorm.io/gorm"
 )

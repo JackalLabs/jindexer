@@ -1,7 +1,9 @@
 package types
 
-import "time"
-import "gorm.io/gorm"
+import (
+	"gorm.io/gorm"
+	"time"
+)
 
 type Block struct {
 	gorm.Model

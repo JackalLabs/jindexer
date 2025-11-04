@@ -10,9 +10,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-var (
-	HTTPProtocols = regexp.MustCompile("https?://")
-)
+var HTTPProtocols = regexp.MustCompile("https?://")
 
 func CreateGrpcConnection(address string) (*grpc.ClientConn, error) {
 	var transportCredentials credentials.TransportCredentials

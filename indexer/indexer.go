@@ -3,9 +3,10 @@ package indexer
 import (
 	"context"
 	"encoding/hex"
-	"jindexer/database"
-	types2 "jindexer/types"
 	"time"
+
+	"github.com/JackalLabs/jindexer/database"
+	types2 "github.com/JackalLabs/jindexer/types"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -30,7 +31,6 @@ type Indexer struct {
 }
 
 func NewIndexer(rpcEndpoint string, grpcEndpoint string, codec params.EncodingConfig, db *database.Database, startHeight int64, endHeight int64) (*Indexer, error) {
-
 	rpcClient, err := client.NewClientFromNode(rpcEndpoint)
 	if err != nil {
 		return nil, err
@@ -130,7 +130,6 @@ func (i *Indexer) indexBlock(ctx context.Context, height int64) {
 
 		log.Info().Str("tx", txHash).Msg("Tx parsed")
 	}
-
 }
 
 func (i *Indexer) processMessage(msg sdk.Msg, block types2.Block) error {

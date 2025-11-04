@@ -1,4 +1,4 @@
-module jindexer
+module github.com/JackalLabs/jindexer
 
 go 1.25.3
 
