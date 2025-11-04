@@ -71,6 +71,16 @@ func (i *Indexer) Start() {
 func (i *Indexer) indexBlock(ctx context.Context, height int64) {
 	log.Info().Int64("height", height).Msg("Indexing block...")
 
+	alreadyIndexed, err := i.database.BlockExistsByHeight(height)
+	if err != nil {
+		log.Err(err).Msg("failed to check if block exists")
+		return
+	}
+	if alreadyIndexed {
+		log.Info().Int64("height", height).Msg("Block already indexed")
+		return
+	}
+
 	var networkHeight int64 = 0
 
 	for networkHeight < height || networkHeight == 0 {

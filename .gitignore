@@ -1,3 +1,5 @@
 *.db
 .idea
 *.db-journal
+data
+postgres_data
