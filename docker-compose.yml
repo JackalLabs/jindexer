@@ -68,6 +68,19 @@ services:
     networks:
       - jindexer-network
 
+  jweb:
+    depends_on:
+      - japi
+    build:
+      dockerfile: Dockerfile
+      context: ./web
+    container_name: jweb
+    ports:
+      - "3059:80"
+    restart: unless-stopped
+    networks:
+      - jindexer-network
+
 networks:
   jindexer-network:
     driver: bridge

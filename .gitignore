@@ -3,3 +3,4 @@
 *.db-journal
 data
 postgres_data
+node_modules

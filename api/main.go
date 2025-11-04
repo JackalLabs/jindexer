@@ -19,6 +19,9 @@ func main() {
 		panic(err)
 	}
 
+	// Initialize provider cache
+	providerCache := NewProviderCache()
+
 	// Set up Gin router
 	r := gin.Default()
 
@@ -117,6 +120,30 @@ func main() {
 			"limit":  limit,
 			"proofs": proofs,
 			"count":  len(proofs),
+		})
+	})
+
+	// Provider endpoint - returns the IP/domain for a given Jackal address
+	r.GET("/provider/:address", func(c *gin.Context) {
+		address := c.Param("address")
+		if address == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "address parameter is required"})
+			return
+		}
+
+		ip, err := providerCache.GetProviderIP(address)
+		if err != nil {
+			log.Err(err).Str("address", address).Msg("failed to get provider IP")
+			c.JSON(http.StatusNotFound, gin.H{
+				"error":   "provider not found",
+				"address": address,
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"address": address,
+			"ip":      ip,
 		})
 	})
 
