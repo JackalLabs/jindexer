@@ -47,21 +47,32 @@ func main() {
 		panic(err)
 	}
 
-	// If startHeight is 0, get the current block height from the RPC endpoint
+	// If startHeight is 0, try to get the most recent block from the database first,
+	// then fall back to current block height from RPC if there's an error
 	if startHeight == 0 {
-		rpcClient, err := client.NewClientFromNode(rpcEndpoint)
-		if err != nil {
-			log.Fatal().Err(err).Msg("failed to create RPC client to get current block height")
-		}
+		mostRecentHeight, err := d.GetMostRecentBlockHeight()
+		if err == nil {
+			// Start from the next block after the most recent one
+			startHeight = mostRecentHeight + 1
+			log.Info().Int64("start_height", startHeight).Int64("last_indexed_height", mostRecentHeight).Msg("Starting after most recently saved block")
+		} else {
+			// If there's an error (e.g., no blocks in database), fall back to current block height from RPC
+			log.Warn().Err(err).Msg("Failed to get most recent block from database, falling back to current block height from RPC")
 
-		ctx := context.Background()
-		abciInfo, err := rpcClient.ABCIInfo(ctx)
-		if err != nil {
-			log.Fatal().Err(err).Msg("failed to get current block height from RPC")
-		}
+			rpcClient, err := client.NewClientFromNode(rpcEndpoint)
+			if err != nil {
+				log.Fatal().Err(err).Msg("failed to create RPC client to get current block height")
+			}
 
-		startHeight = abciInfo.Response.LastBlockHeight
-		log.Info().Int64("start_height", startHeight).Msg("Starting from current block height")
+			ctx := context.Background()
+			abciInfo, err := rpcClient.ABCIInfo(ctx)
+			if err != nil {
+				log.Fatal().Err(err).Msg("failed to get current block height from RPC")
+			}
+
+			startHeight = abciInfo.Response.LastBlockHeight
+			log.Info().Int64("start_height", startHeight).Msg("Starting from current block height")
+		}
 	}
 
 	i, err := indexer.NewIndexer(rpcEndpoint, grpcEndpoint, encodingCfg, d, startHeight, 0)

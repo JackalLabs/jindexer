@@ -39,6 +39,22 @@ func (d *Database) BlockExistsByHeight(height int64) (bool, error) {
 	return count > 0, nil
 }
 
+// GetMostRecentBlockHeight returns the height of the most recently saved block.
+// Returns 0 and an error if no blocks are found or if there's a database error.
+func (d *Database) GetMostRecentBlockHeight() (int64, error) {
+	var block types.Block
+	err := d.db.Model(&types.Block{}).
+		Order("height DESC").
+		First(&block).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return 0, err
+		}
+		return 0, err
+	}
+	return block.Height, nil
+}
+
 func (d *Database) SavePostProof(postProof *types.PostProof) error {
 	return d.db.Create(postProof).Error
 }
