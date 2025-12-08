@@ -25,6 +25,15 @@ func main() {
 	// Set up Gin router
 	r := gin.Default()
 
+	// Register Prometheus metrics endpoint
+	RegisterMetricsEndpoint(r)
+
+	// Initialize metrics from existing database data
+	InitializeMetricsFromDatabase(d)
+
+	// Register report endpoint for 12-hour window analysis
+	RegisterReportEndpoint(r, d)
+
 	// Query endpoint for proofs by merkle and date range
 	r.GET("/query", func(c *gin.Context) {
 		merkle := c.Query("merkle")

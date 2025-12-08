@@ -6,6 +6,7 @@ require (
 	github.com/cosmos/cosmos-sdk v0.45.17
 	github.com/gin-gonic/gin v1.8.1
 	github.com/jackalLabs/canine-chain/v5 v5.0.1
+	github.com/prometheus/client_golang v1.18.0
 	github.com/rs/zerolog v1.33.0
 	github.com/tendermint/tendermint v0.34.27
 	google.golang.org/grpc v1.61.1
