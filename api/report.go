@@ -168,4 +168,3 @@ func analyzeWindow(merkles []string, merkleProofTimes map[string][]time.Time, wi
 		MissedMerkles: missedMerkles,
 	}
 }
-
