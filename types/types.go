@@ -10,7 +10,7 @@ type Block struct {
 	gorm.Model
 
 	Height int64     `json:"height" gorm:"uniqueIndex"`
-	Time   time.Time `json:"time"`
+	Time   time.Time `json:"time" gorm:"index:idx_blocks_time,sort:desc"`
 }
 
 type PostProof struct {
@@ -20,5 +20,5 @@ type PostProof struct {
 	Prover string `json:"prover" gorm:"index"`
 
 	Block   Block `json:"block"`
-	BlockId uint  `json:"blockId"`
+	BlockId uint  `json:"blockId" gorm:"index"`
 }
