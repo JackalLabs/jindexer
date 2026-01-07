@@ -18,9 +18,7 @@ COPY go.mod go.sum ./
 
 # Download dependencies and copy wasmvm libraries in one step
 # We need to access the module cache to copy the wasmvm .so files
-RUN --mount=type=cache,target=/go/pkg/mod \
-    --mount=type=cache,target=/root/.cache/go-build \
-    mkdir -p /wasmvm-libs && \
+RUN mkdir -p /wasmvm-libs && \
     go mod download && \
     (find /go/pkg/mod -path "*wasmvm*" -name "*.so" -type f -exec cp {} /wasmvm-libs/ \; 2>/dev/null || true) && \
     (find /go/pkg/mod -path "*wasmvm*" -name "*.so.*" -type f -exec cp {} /wasmvm-libs/ \; 2>/dev/null || true)
@@ -29,8 +27,7 @@ COPY . .
 
 # Build the binary with CGO enabled (required for go-sqlite3 and wasmvm)
 # Note: CGO_ENABLED=1 is the default, but explicitly set for clarity
-RUN --mount=type=cache,target=/root/.cache/go-build \
-    CGO_ENABLED=1 go build -trimpath -ldflags="-s -w" -o japi ./api
+RUN CGO_ENABLED=1 go build -trimpath -ldflags="-s -w" -o japi ./api
 
 # Final stage
 FROM debian:bookworm-slim AS final
