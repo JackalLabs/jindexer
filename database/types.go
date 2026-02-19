@@ -47,9 +47,6 @@ func (d *Database) GetMostRecentBlockHeight() (int64, error) {
 		Order("height DESC").
 		First(&block).Error
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return 0, err
-		}
 		return 0, err
 	}
 	return block.Height, nil
@@ -100,4 +97,31 @@ func (d *Database) ListProofsByID(limit int) ([]types.PostProof, error) {
 		Find(&proofs).Error
 
 	return proofs, err
+}
+
+// MerkleLastProof holds the most recent proof timestamp for a merkle.
+type MerkleLastProof struct {
+	Merkle        string
+	LastProofTime time.Time
+}
+
+// GetMerkleLastProofTimes returns the most recent block time per merkle using
+// a SQL aggregate instead of loading individual rows.
+func (d *Database) GetMerkleLastProofTimes() ([]MerkleLastProof, error) {
+	var results []MerkleLastProof
+
+	err := d.db.Model(&types.PostProof{}).
+		Select("post_proofs.merkle, MAX(blocks.time) as last_proof_time").
+		Joins("INNER JOIN blocks ON post_proofs.block_id = blocks.id").
+		Group("post_proofs.merkle").
+		Scan(&results).Error
+
+	return results, err
+}
+
+// GetTotalProofCount returns the total number of proofs in the database.
+func (d *Database) GetTotalProofCount() (int64, error) {
+	var count int64
+	err := d.db.Model(&types.PostProof{}).Count(&count).Error
+	return count, err
 }

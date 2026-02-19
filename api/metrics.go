@@ -1,6 +1,7 @@
 package main
 
 import (
+	"math"
 	"time"
 
 	"github.com/JackalLabs/jindexer/database"
@@ -128,44 +129,31 @@ func InitializeMetricsFromDatabase(d *database.Database) {
 
 // refreshMetricsFromDatabase queries the database and computes aggregate metrics
 func refreshMetricsFromDatabase(d *database.Database) {
-	// Get recent proofs - we query a large set to capture unique merkles
-	// For very large datasets, consider adding a database query for aggregates
-	proofs, err := d.ListRecentProofs(100000)
+	// Use SQL aggregates to get the latest proof time per merkle instead of
+	// loading individual rows into Go memory.
+	merkleProofs, err := d.GetMerkleLastProofTimes()
 	if err != nil {
 		log.Err(err).Msg("failed to refresh metrics from database")
 		return
 	}
 
-	now := time.Now().Unix()
-
-	// Track merkle stats: most recent proof timestamp per merkle
-	merkleLastTimestamp := make(map[string]int64)
-
-	for _, proof := range proofs {
-		merkle := proof.Merkle
-		proofTime := proof.Block.Time.Unix()
-
-		// Track the most recent timestamp per merkle
-		if existingTime, exists := merkleLastTimestamp[merkle]; !exists || proofTime > existingTime {
-			merkleLastTimestamp[merkle] = proofTime
-		}
+	totalProofs, err := d.GetTotalProofCount()
+	if err != nil {
+		log.Err(err).Msg("failed to get total proof count")
+		return
 	}
 
-	// Calculate aggregate statistics
-	totalMerkles := len(merkleLastTimestamp)
+	now := time.Now().Unix()
+
+	totalMerkles := len(merkleProofs)
 	var healthy, missed, critical int
-	var oldestAge, newestAge int64 = 0, int64(^uint64(0) >> 1) // min/max initialization
+	var oldestAge, newestAge int64 = 0, math.MaxInt64
 
-	// Reset histogram before re-observing
-	ProofAgeHistogram.Observe(0) // This is a workaround; histograms don't have reset
+	for _, mp := range merkleProofs {
+		age := now - mp.LastProofTime.Unix()
 
-	for _, lastTimestamp := range merkleLastTimestamp {
-		age := now - lastTimestamp
-
-		// Update histogram
 		ProofAgeHistogram.Observe(float64(age))
 
-		// Track oldest and newest
 		if age > oldestAge {
 			oldestAge = age
 		}
@@ -173,7 +161,6 @@ func refreshMetricsFromDatabase(d *database.Database) {
 			newestAge = age
 		}
 
-		// Categorize by health status
 		if age <= proofWindowSeconds {
 			healthy++
 		} else if age <= criticalWindowSeconds {
@@ -183,14 +170,12 @@ func refreshMetricsFromDatabase(d *database.Database) {
 		}
 	}
 
-	// Handle edge case of no merkles
 	if totalMerkles == 0 {
 		newestAge = 0
 	}
 
-	// Update aggregate metrics
 	TotalMerklesTracked.Set(float64(totalMerkles))
-	TotalProofsIndexed.Set(float64(len(proofs)))
+	TotalProofsIndexed.Set(float64(totalProofs))
 	MerklesHealthy.Set(float64(healthy))
 	MerklesMissed.Set(float64(missed))
 	MerklesCritical.Set(float64(critical))
